@@ -25,11 +25,11 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer());
       
       // Convert HEIC to JPEG if necessary
-      let processedBuffer = buffer;
+      let processedBuffer: Buffer = buffer;
       if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
         // Note: heic-convert requires additional setup
         // For production, you might want to use a service or different library
-        processedBuffer = await sharp(buffer).jpeg().toBuffer();
+        processedBuffer = Buffer.from(await sharp(buffer).jpeg().toBuffer());
       }
       
       // Save file
@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
       savedPaths.push(savedPath);
       
       // Resize for API (to reduce token usage)
-      const resizedBuffer = await sharp(processedBuffer)
+      const resizedBuffer = Buffer.from(await sharp(processedBuffer)
         .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
         .jpeg({ quality: 85 })
-        .toBuffer();
+        .toBuffer());
       
       imageBuffers.push(resizedBuffer);
     }

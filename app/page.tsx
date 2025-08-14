@@ -12,7 +12,8 @@ import {
   Ruler, 
   TrendingUp,
   AlertCircle,
-  Plus
+  Plus,
+  Upload
 } from "lucide-react";
 import Link from "next/link";
 import { getBPCategory, getBMICategory, calculateDelta } from "@/lib/utils";

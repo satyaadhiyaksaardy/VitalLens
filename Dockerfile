@@ -8,6 +8,7 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json pnpm-lock.yaml ./
+COPY prisma ./prisma/
 RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
 # Rebuild the source code only when needed
@@ -33,8 +34,8 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy the public folder
-COPY --from=builder /app/public ./public
+# Create public directory and copy files if they exist
+RUN mkdir -p public
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
@@ -45,12 +46,15 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma files
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+# Copy Prisma files and generate client
+COPY --from=builder /app/prisma ./prisma
 
-# Create uploads directory
-RUN mkdir -p uploads && chown nextjs:nodejs uploads
+# Generate Prisma client in production
+RUN npx prisma generate
+
+# Create uploads directory and set ownership
+RUN mkdir -p uploads
+RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 

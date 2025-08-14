@@ -20,7 +20,7 @@ export async function GET(
       contentType = 'image/heic';
     }
     
-    return new NextResponse(imageBuffer, {
+    return new NextResponse(Buffer.from(imageBuffer), {
       headers: {
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=31536000, immutable',
