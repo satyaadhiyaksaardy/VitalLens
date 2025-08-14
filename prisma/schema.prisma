@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Reading {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  measuredAt        DateTime
+  
+  // Vitals from height/weight/BMI machines
+  heightCm          Float?   // e.g., 164.6
+  weightKg          Float?   // e.g., 63.2
+  bmi               Float?
+  standardWeightKg  Float?
+  
+  // Vitals from blood pressure monitors
+  systolic          Int?     // mmHg
+  diastolic         Int?     // mmHg
+  pulse             Int?     // bpm
+  
+  // Metadata
+  sourceImages      String   // JSON array of file paths
+  notes             String?
+  
+  @@index([measuredAt])
+}
