@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Camera, Upload, Loader2, Utensils } from "lucide-react"
+import { Camera, Upload, Loader2, Utensils, History } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Image from "next/image"
 
@@ -108,9 +108,19 @@ export default function MealTracker() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Utensils className="h-6 w-6" />
-        <h1 className="text-3xl font-bold">Meal Tracker</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Utensils className="h-6 w-6" />
+          <h1 className="text-3xl font-bold">Meal Tracker</h1>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => router.push("/meals/history")}
+          className="flex items-center gap-2"
+        >
+          <History className="h-4 w-4" />
+          View History
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

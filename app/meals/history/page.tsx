@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Utensils, Calendar, TrendingUp, Clock } from "lucide-react"
+import { Utensils, Calendar, TrendingUp, Clock, Plus } from "lucide-react"
 import { format } from "date-fns"
 import Image from "next/image"
 
@@ -85,6 +85,13 @@ export default function MealHistory() {
           <h1 className="text-3xl font-bold">Meal History</h1>
         </div>
         <div className="flex items-center gap-4">
+          <Button
+            onClick={() => window.location.href = "/meals"}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Meal
+          </Button>
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-40">
               <SelectValue />
