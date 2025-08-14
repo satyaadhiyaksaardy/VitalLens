@@ -7,6 +7,10 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=file:./dev.db
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     volumes:
       - uploads_data:/app/uploads
       - database_data:/app

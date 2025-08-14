@@ -4,8 +4,9 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/toaster";
 import Link from "next/link";
-import { Activity, Home, Upload, History, Settings } from "lucide-react";
+import { Activity, Home, Upload, History, Utensils, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -59,10 +60,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     >
                       <span className="flex items-center gap-2">
                         <History className="h-4 w-4" />
-                        History
+                        Vitals
+                      </span>
+                    </Link>
+                    <Link
+                      href="/meals"
+                      className="transition-colors hover:text-foreground/80 text-foreground/60"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Utensils className="h-4 w-4" />
+                        Meals
                       </span>
                     </Link>
                   </nav>
+                </div>
+                <div className="flex items-center ml-auto">
+                  <SignOutButton />
                 </div>
               </div>
             </header>

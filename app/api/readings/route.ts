@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { requireAuth } from "@/lib/auth-api";
 
 export const runtime = "nodejs";
 
@@ -19,12 +20,14 @@ const CreateReadingSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await requireAuth();
     const body = await request.json();
     const validated = CreateReadingSchema.parse(body);
 
     const reading = await prisma.reading.create({
       data: {
         ...validated,
+        userId: session.user.id,
         sourceImages: JSON.stringify(validated.sourceImages || []),
       },
     });
@@ -34,6 +37,9 @@ export async function POST(request: NextRequest) {
       sourceImages: JSON.parse(reading.sourceImages),
     });
   } catch (error) {
+    if (error instanceof Error && error.message === "Authentication required") {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
     console.error("Error creating reading:", error);
     return NextResponse.json({ error: "Failed to create reading" }, { status: 500 });
   }
@@ -41,12 +47,15 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await requireAuth();
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     const limit = searchParams.get("limit");
 
-    const where: any = {};
+    const where: any = {
+      userId: session.user.id, // Only fetch readings for the authenticated user
+    };
 
     if (startDate || endDate) {
       where.measuredAt = {};
@@ -71,6 +80,9 @@ export async function GET(request: NextRequest) {
       }))
     );
   } catch (error) {
+    if (error instanceof Error && error.message === "Authentication required") {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
     console.error("Error fetching readings:", error);
     return NextResponse.json({ error: "Failed to fetch readings" }, { status: 500 });
   }

@@ -8,10 +8,58 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  readings      Reading[]
+  meals         Meal[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
 model Reading {
   id                String   @id @default(cuid())
   createdAt         DateTime @default(now())
   measuredAt        DateTime
+  userId            String
   
   // Vitals from height/weight/BMI machines
   heightCm          Float?   // e.g., 164.6
@@ -28,5 +76,35 @@ model Reading {
   sourceImages      String   // JSON array of file paths
   notes             String?
   
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   @@index([measuredAt])
+  @@index([userId])
+}
+
+model Meal {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  eatenAt       DateTime
+  userId        String
+  
+  // Meal details
+  description   String?  // User's short explanation
+  mealType      String?  // breakfast, lunch, dinner, snack
+  
+  // AI Analysis results
+  foodItems     String   // JSON array of identified foods
+  totalCalories Int?     // Estimated total calories
+  macros        String?  // JSON object with protein, carbs, fat, fiber
+  analysis      String?  // Gemini's detailed feedback
+  confidence    Float?   // AI confidence score (0-1)
+  
+  // Image data
+  imageUrl      String   // Path to meal photo
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([eatenAt])
+  @@index([userId])
+  @@index([mealType])
 }
