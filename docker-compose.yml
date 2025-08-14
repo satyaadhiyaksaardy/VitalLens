@@ -7,19 +7,13 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=file:./prisma/dev.db
+      - DATABASE_URL=file:./dev.db
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     volumes:
-      - ./uploads:/app/uploads
-      - ./prisma:/app/prisma
+      - uploads_data:/app/uploads
+      - database_data:/app
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
 volumes:
   uploads_data:
-  prisma_data:
+  database_data:

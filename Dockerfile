@@ -1,9 +1,11 @@
-FROM node:18-alpine AS base
+FROM node:18-slim AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat openssl1.1-compat
+RUN apt-get update && apt-get install -y \
+  libssl-dev \
+  ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -17,7 +19,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma client
+# Generate Prisma client with correct binary targets
 RUN npx prisma generate
 
 # Build the application
@@ -25,7 +27,10 @@ RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
-RUN apk add --no-cache libc6-compat openssl1.1-compat
+RUN apt-get update && apt-get install -y \
+  libssl-dev \
+  ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 ENV NODE_ENV production
@@ -47,13 +52,19 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma files and generate client
+# Copy Prisma schema  
 COPY --from=builder /app/prisma ./prisma
 
-# Generate Prisma client in production
+# Install Prisma packages alongside existing standalone dependencies
+RUN yarn add @prisma/client@5.22.0 prisma@5.22.0 --production
+
+# Generate Prisma client for production
 RUN npx prisma generate
 
-# Create uploads directory and set ownership
+# Initialize database and run migrations
+RUN npx prisma db push
+
+# Create uploads directory and set permissions
 RUN mkdir -p uploads
 RUN chown -R nextjs:nodejs /app
 
