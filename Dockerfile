@@ -4,6 +4,7 @@ FROM node:18-slim AS base
 FROM base AS deps
 RUN apt-get update && apt-get install -y \
   libssl-dev \
+  openssl \
   ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
@@ -29,6 +30,7 @@ RUN npm run build
 FROM base AS runner
 RUN apt-get update && apt-get install -y \
   libssl-dev \
+  openssl \
   ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
@@ -38,7 +40,8 @@ ENV NODE_ENV production
 # ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser --system --uid 1001 --home /home/nextjs --shell /bin/bash nextjs
+RUN mkdir -p /home/nextjs
 
 # Create public directory and copy files if they exist
 RUN mkdir -p public
@@ -52,7 +55,7 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma schema  
+# Copy Prisma schema
 COPY --from=builder /app/prisma ./prisma
 
 # Install Prisma packages alongside existing standalone dependencies
@@ -61,12 +64,10 @@ RUN yarn add @prisma/client@5.22.0 prisma@5.22.0 --production
 # Generate Prisma client for production
 RUN npx prisma generate
 
-# Initialize database and run migrations
-RUN npx prisma db push
-
 # Create uploads directory and set permissions
 RUN mkdir -p uploads
 RUN chown -R nextjs:nodejs /app
+RUN chown -R nextjs:nodejs /home/nextjs
 
 USER nextjs
 
@@ -75,4 +76,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["/bin/bash", "-c", "npx prisma db push --accept-data-loss && node server.js"]
